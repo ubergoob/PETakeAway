@@ -1,0 +1,15 @@
+{
+  "tileSources": {
+    "active": "mapbox",
+    "mapbox": {
+      "accessToken": "",
+      "tiles": "https://api.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=",
+      "attribution": "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>"
+    },
+    "openStreet": {
+      "accessToken": "",
+      "tiles": "http://{s}.tile.osm.org/{z}/{x}/{y}.png",
+      "attribution": "&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors"
+    }
+  }
+}
