@@ -6,7 +6,6 @@ Quick Start (in dev mode):
 ```bash
 git clone https://github.com/ubergoob/PETakeAway.git
 cd PETakeAway
-git checkout development
 npm install
 cp src/config.template.json src/config.json
 npm start
