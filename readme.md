@@ -14,6 +14,15 @@ npm start
 ```
 
 
+# Config file
+
+If you want to use mapbox, get yourself an account and API token [here](https://www.mapbox.com/).
+Update the `src/config.json` accessToken for mapbox and change the "tileSources.active" property to "mapbox".
+
+
+
+# Blah blah ReactJS stuff (good for reference, so left it.)
+
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
