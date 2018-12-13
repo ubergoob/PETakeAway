@@ -19,6 +19,8 @@ npm start
 If you want to use mapbox, get yourself an account and API token [here](https://www.mapbox.com/).
 Update the `src/config.json` accessToken for mapbox and change the "tileSources.active" property to "mapbox".
 
+_Important Note:_ 
+Chrome will throw CORB errors when running from localhost. Easiest way to fix this headache (without relaunching chrome with flags) is to just use Firefox to run locally on and instead use http://lvh.me:3000 in the browser. This will replace localhost with a fully qualified domain name (for CORS), yet it still resolves to 127.0.0.1. 
 
 
 # Blah blah ReactJS stuff (good for reference, so left it.)
