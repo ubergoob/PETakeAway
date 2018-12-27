@@ -26,7 +26,6 @@ class Map extends React.Component {
       mapCenter: [37.541885, -77.440624],
       incidentList: []
     }
-
   }
 
   componentDidMount() {
@@ -42,56 +41,56 @@ class Map extends React.Component {
     // adding marker layer
     this.markerLayer = L.layerGroup().addTo(this.map)
     // add initial markers
-    this._addMarkers()
+    let incidents = this._buildMarkers()
+
+    this._addMarkers(incidents)
     // add event listeners
     this.map.on('moveend', () => {this.setState({mapCenter: [this.map.getCenter().lat, this.map.getCenter().lng]})})
   }
 
-  _addMarkers = () => {
-    this.markerLayer.clearLayers();
-    //get markers. Stored in local json files for now: 
+  _buildMarkers = () => {
+    //get markers. Stored in local json files for now. Filenames are entered in config file: 
+    let incidents = []
     dataFiles.forEach(item => {
-    const incident = require('../../data/'+ item)
-    
-
-    this.setState({
-      incidentList: [...this.state.incidentList, 
-        {
-          properties: {
-            name: incident.address.common_place_name
-          },
-          geometry: {
-            coordinates: [incident.address.latitude, incident.address.longitude]
-          } 
-        }
-      ]
+      let incident = require('../../data/'+ item)
+      let url = 'http://gis.richmondgov.com/ArcGIS/rest/services/StatePlane4502/Ener/MapServer/0/query?geometry=' + incident.address.longitude + ',' + incident.address.latitude + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&time=&returnCountOnly=false&returnIdsOnly=false&returnGeometry=true&outFields=*&f=pjson'
+      const details = async (incident) => {
+        const response = await fetch(url, {crossDomain: true})
+        const json = await response.json()
+        incident.additionalData = json
+        
+      }
+      details(incident) 
+      incidents.push(incident)
     })
-
-    // collect some more data on location
-    // ### Notes ####
-    /* Extracting this call to it's own module as it could be extracted to an API to "hide" data source.
-       Passing 'this' to the module although it wouldn't be passed to an API. This is because if we called an API
-       for same data, then we would utilize 'this' in the promise locally as we do in the library.
-       this would most likely still have some refactoring to minimize sent payload. Currently would only need
-       to send lat/long. This really could be optimized down the road if calling an API. Usually I wouldn't prefer
-      to make an undetermined number of calls to the server, instead calling once for all incidents. */
-    getAdditionalData(incident, this)
-    })
-    
+    return (incidents)
   }
 
-  _placeMarker = (incident) => {
+  _addMarkers = (incidents) => {
+    this.markerLayer.clearLayers()
     // just addin markers for the moment, will perdy-fy them in a bit.
-    L.marker([incident.address.latitude, incident.address.longitude], {icon: baseIcon, alt: 'fire'})
-    .addTo(this.markerLayer)
-    .bindPopup(incident.address.common_place_name)
+    incidents.forEach((incident) => {
+      L.marker([incident.address.latitude, incident.address.longitude], {icon: baseIcon, alt: 'fire'})
+      .addTo(this.markerLayer)
+      .bindPopup(incident.address.common_place_name)      
+    })
     this.forceUpdate()
   }
+
+  _createListLegend = () => {
+    const listIncidents = this.state.incidentList.map((incident) => 
+      <li key={incident.properties.name}>{incident.properties.name}</li>
+    )
+    return (
+      <ul>{listIncidents}</ul>
+    )
+  }
+
 
   render() {
     return <div>
       <div id="map" style={{height: '100vh'}}></div>
-      <div style={mapStyles.MapLegend}>INCIDENTS  {JSON.stringify(this.state.incidentList, null, 2)}</div>
+      <div style={mapStyles.MapLegend}>INCIDENTS  {this._createListLegend()}</div>
     </div>
   }
 }
