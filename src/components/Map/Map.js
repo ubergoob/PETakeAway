@@ -1,6 +1,5 @@
 import React from 'react';
 import L from 'leaflet';
-import {getAdditionalData} from './mapHelper'
 import mapStyles from './mapCss'
 
 const tileSources = require('../../config.json').tileSources
@@ -24,7 +23,8 @@ class Map extends React.Component {
     this.state = {
       marker: null,
       mapCenter: [37.541885, -77.440624],
-      incidentList: []
+      incidentList: [],
+      incidentMarkers: []
     }
   }
 
@@ -38,19 +38,21 @@ class Map extends React.Component {
         }),
       ]
     });
-    // adding marker layer
+    // adding layers
     this.markerLayer = L.layerGroup().addTo(this.map)
+    this.polyLayer = L.layerGroup().addTo(this.map)
     // add initial markers
-    let incidents = this._buildMarkers()
-
-    this._addMarkers(incidents)
+    this.incidents = this._buildMarkers()
+    this.setState({incidentList: this.incidents})
     // add event listeners
-    this.map.on('moveend', () => {this.setState({mapCenter: [this.map.getCenter().lat, this.map.getCenter().lng]})})
+    this.map.on('moveend', () => {console.log(this.state.incidentMarkers[0])})//{this.setState({mapCenter: [this.map.getCenter().lat, this.map.getCenter().lng]})})
   }
 
   _buildMarkers = () => {
     //get markers. Stored in local json files for now. Filenames are entered in config file: 
+    this.markerLayer.clearLayers()
     let incidents = []
+    let markers = []
     dataFiles.forEach(item => {
       let incident = require('../../data/'+ item)
       let url = 'http://gis.richmondgov.com/ArcGIS/rest/services/StatePlane4502/Ener/MapServer/0/query?geometry=' + incident.address.longitude + ',' + incident.address.latitude + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&time=&returnCountOnly=false&returnIdsOnly=false&returnGeometry=true&outFields=*&f=pjson'
@@ -59,33 +61,33 @@ class Map extends React.Component {
         const json = await response.json()
         incident.additionalData = json
         
+        // create the marker
+        markers.push(L.marker([incident.address.latitude, incident.address.longitude], {icon: baseIcon, alt: 'fire'})
+        .addTo(this.markerLayer)
+        .bindPopup(incident.address.common_place_name))
       }
       details(incident) 
       incidents.push(incident)
     })
+    this.setState({incidentMarkers: markers})
     return (incidents)
-  }
-
-  _addMarkers = (incidents) => {
-    this.markerLayer.clearLayers()
-    // just addin markers for the moment, will perdy-fy them in a bit.
-    incidents.forEach((incident) => {
-      L.marker([incident.address.latitude, incident.address.longitude], {icon: baseIcon, alt: 'fire'})
-      .addTo(this.markerLayer)
-      .bindPopup(incident.address.common_place_name)      
-    })
-    this.forceUpdate()
   }
 
   _createListLegend = () => {
     const listIncidents = this.state.incidentList.map((incident) => 
-      <li key={incident.properties.name}>{incident.properties.name}</li>
+      <li 
+      key={incident.description.incident_number} 
+      onClick={() => this._moveMap([incident.address.latitude, incident.address.longitude])}
+      >{incident.address.common_place_name}</li>
     )
     return (
-      <ul>{listIncidents}</ul>
+      <ul style={mapStyles.ListItems}>{listIncidents}</ul>
     )
   }
 
+  _moveMap(point) {
+    this.map.flyTo(point)
+  }
 
   render() {
     return <div>
